@@ -80,13 +80,14 @@ def get_metrics() -> dict:
 
 def print_info():
     """Print Janus-1 project information."""
-    print(f"""\n{'='*70}")
+    separator = '=' * 70
+    print(f"\n{separator}")
     print("Janus-1: Real-Time Generative AI Acceleration at the Edge")
-    print(f"{'='*70}")
+    print(separator)
     print(f"Version: {__version__}")
     print(f"Author: {__author__}")
     print(f"License: {__license__}")
-    print(f"\nKey Performance Metrics:")
+    print("\nKey Performance Metrics:")
     print(f"  Compute: {__metrics__['compute_tops']} TOPS")
     print(f"  Power: {__metrics__['power_watts']} W")
     print(f"  Area: {__metrics__['area_mm2']} mm²")
@@ -95,4 +96,4 @@ def print_info():
     print(f"  P99 Latency: {__metrics__['p99_latency_cycles']} cycle")
     print(f"\nProcess: {__metrics__['process_node_nm']}nm GAA")
     print(f"\nRepository: {__url__}")
-    print(f"{'='*70}\n")
+    print(f"{separator}\n")
