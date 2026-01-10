@@ -86,7 +86,7 @@ def test_memory_power_model_sram():
     model = MemoryPowerModel(32, 20, "HD_SRAM")
     power = model.estimate_power()
 
-    assert power["technology"] == "HD SRAM"
+    assert power["technology"] == "HD_SRAM"
     assert power["total_w"] > 0
 
 
