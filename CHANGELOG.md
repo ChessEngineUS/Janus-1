@@ -10,124 +10,183 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - CONTRIBUTING.md with comprehensive contribution guidelines
 - CHANGELOG.md for tracking project changes
-- Enhanced README badges (codecov, code style, DOI, stars)
-- Improved README formatting and organization
+- Enhanced README.md with additional badges and improved formatting
+- Code coverage badge support
+- DOI/Zenodo badge for research citation
 
 ### Changed
-- Updated README with performance metrics table
-- Enhanced comparative analysis section with clearer advantages
-- Improved CI/CD documentation
+- Improved documentation structure and clarity
+- Enhanced CI/CD badge display in README
 
 ### Fixed
-- Test assertion in `test_memory_power_model_sram` to expect 'HD_SRAM' instead of 'HD SRAM'
+- Test assertion in `test_memory_power_model_sram` expecting 'HD_SRAM' instead of 'HD SRAM'
+
+---
 
 ## [1.0.0] - 2026-01-10
 
 ### Added
-- Initial public release of Janus-1
-- Complete cycle-accurate memory hierarchy simulator (`JanusSim`)
-- Janus-Prefetch-1 FSM-based stream prefetcher implementation
-- KV-cache sizing models for FP16/INT8/INT4 quantization
-- Memory technology power/area models (SRAM, eDRAM, MRAM)
-- SRAM area estimation tools
-- Thermal analysis with junction temperature modeling
-- Comprehensive test suite with 15 unit tests
-- CI/CD pipeline with multi-platform testing (Ubuntu, macOS, Windows)
-- Multi-version Python support (3.9, 3.10, 3.11, 3.12)
-- Publication-ready Google Colab notebook with complete analysis
-- Automated code quality checks (flake8, black, mypy)
-- Memory hierarchy parameter sweep experiments
-- Prefetcher look-ahead optimization experiments
-- Full system evaluation scripts
 
-### Documentation
-- Comprehensive README with architecture overview
-- Quick start guide for local and Colab execution
-- Design methodology documentation (4-step co-design process)
-- API documentation for all modules
-- Reproducibility instructions
+#### Core Features
+- **Janus-Sim**: Cycle-accurate memory hierarchy simulator
+  - Two-tier SRAM+eDRAM memory system (32 MB + 224 MB)
+  - Bank conflict modeling (4 SRAM banks, 14 eDRAM banks)
+  - LRU cache replacement policy
+  - Event-driven simulation engine
 
-### Results
-- **8.2 TOPS** INT4/INT8 compute performance
-- **~4.05 W** total power consumption
-- **~79 mm²** die area at 3nm process
-- **99.99%** T1 cache hit rate
-- **63 MB/W** memory efficiency (15.8× better than Google Edge TPU)
-- **1.0 cycle** P99 read latency
-- INT4 quantization validation on Llama-2 7B (6.04 perplexity)
+- **Janus-Prefetch-1**: FSM-based stream prefetcher
+  - Configurable look-ahead depth (optimized at 16 lines)
+  - 4-wide prefetch issue
+  - 99.99% cache hit rate achievement
+  - <2K gate hardware cost
 
-### Architecture Highlights
-- **Heterogeneous memory**: 32 MB SRAM (T1) + 224 MB eDRAM (T2)
-- **Compute fabric**: 16 tiles, 16×16 MAC units per tile
-- **Prefetcher**: <2K gate FSM with 16-line look-ahead
-- **Process technology**: 3nm Gate-All-Around (GAA)
+- **Memory Technology Models**
+  - Power modeling for HD SRAM, eDRAM, STT-MRAM
+  - Area estimation at 3nm GAA process
+  - Thermal analysis with junction temperature modeling
+  - Technology comparison and selection methodology
+
+- **KV-Cache Analysis**
+  - Size calculation for FP32, FP16, INT8, INT4 precisions
+  - Support for arbitrary model configurations
+  - Llama-2 7B validation on WikiText-103
+
+#### Analysis Tools
+- **Google Colab Notebook**: Complete end-to-end analysis pipeline
+  - Zero-setup reproducible research
+  - 10 comprehensive analysis sections
+  - Publication-quality 9-panel visualization suite
+  - Automated data export (CSV/JSON)
+  - Downloadable results package
+
+- **Experiment Scripts**
+  - Memory hierarchy parameter sweeps
+  - Prefetcher optimization studies
+  - Full system PPA evaluation
+  - Thermal analysis tools
+
+#### Testing Infrastructure
+- **Comprehensive Test Suite**
+  - 15+ unit tests covering all modules
+  - Pytest-based testing framework
+  - 65%+ code coverage
+  - Model validation tests
+  - Simulation correctness tests
+
+- **CI/CD Pipeline**
+  - Multi-platform testing (Ubuntu, macOS, Windows)
+  - Multi-version Python support (3.9, 3.10, 3.11, 3.12)
+  - Automated linting (flake8)
+  - Code formatting checks (black)
+  - Type checking (mypy)
+
+#### Documentation
+- **README.md**: Comprehensive project documentation
+  - Architecture overview with ASCII diagram
+  - Quick start guide
+  - Installation instructions
+  - Usage examples
+  - Key results and comparative analysis
+  - Design methodology walkthrough
+
+- **Code Documentation**
+  - Google-style docstrings for all public APIs
+  - Type hints throughout codebase
+  - Inline comments for complex algorithms
+  - Example usage in docstrings
+
+### Key Results
+
+#### Performance Metrics
+- **Compute**: 8.2 TOPS (INT4/INT8)
+- **Power**: ~4.05 W total system power
+- **Area**: ~79 mm² (3nm process)
+- **Memory Efficiency**: 63 MB/W (15.8× better than Google Edge TPU)
+- **Cache Hit Rate**: 99.99%
+- **P99 Latency**: 1.0 cycle
+
+#### Memory Technology Selection
+- Evaluated HD SRAM, eDRAM, and STT-MRAM
+- Selected eDRAM for T2 cache (224 MB)
+  - Total power: 1.15 W
+  - Memory efficiency: 194.8 MB/W
+  - Optimal power-latency trade-off
+
+#### Quantization Validation
+- Llama-2 7B on WikiText-103
+- INT4: 256 MB footprint, 6.04 perplexity (+11.4% vs FP16)
+- 8× memory reduction vs FP16
+- Acceptable accuracy degradation for edge deployment
+
+#### Prefetcher Optimization
+- Optimal look-ahead: 16 cache lines
+- 99.99% T1 hit rate achieved
+- Hardware cost: <2K logic gates (FSM implementation)
+- Minimal area and power overhead
+
+### Design Methodology
+
+1. **Problem Quantification**: Calculated theoretical KV-cache requirements
+2. **Algorithmic Mitigation**: Selected INT4 quantization (256 MB footprint)
+3. **Technology Selection**: Chose eDRAM for power-latency optimization
+4. **Prefetcher Design**: Optimized FSM-based stream prefetcher
+
+### Repository Structure
+
+```
+Janus-1/
+├── src/                          # Source code
+│   ├── simulator/                # Memory hierarchy simulator
+│   ├── models/                   # Power/area/thermal models
+│   └── benchmarks/               # Workload generation and validation
+├── experiments/                  # Analysis scripts
+├── tests/                        # Test suite
+├── results/                      # Generated outputs
+├── docs/                         # Documentation
+├── Janus_1_Complete_Analysis.ipynb  # Colab notebook
+├── requirements.txt              # Dependencies
+└── README.md                     # Project documentation
+```
+
+### Dependencies
+
+- Python 3.9+
+- NumPy
+- Pandas
+- Matplotlib
+- Seaborn
+- Pytest (testing)
+- Flake8 (linting)
+- Black (formatting)
+- MyPy (type checking)
 
 ---
 
-## Release Notes Template
+## Version History Summary
 
-### [Version Number] - YYYY-MM-DD
-
-#### Added
-- New features added to the project
-
-#### Changed
-- Changes to existing functionality
-
-#### Deprecated
-- Features that will be removed in future versions
-
-#### Removed
-- Features that have been removed
-
-#### Fixed
-- Bug fixes
-
-#### Security
-- Security vulnerability fixes
-
----
-
-## Version History
-
-- **v1.0.0** (2026-01-10): Initial public release with complete system implementation
-- **v0.x.x** (Pre-release): Internal development and validation
-
----
-
-## Future Releases
-
-### Planned for v1.1.0
-- FPGA emulation support
-- Extended workload traces (encoder-decoder models)
-- Enhanced visualization tools
-- Docker containerization
-- Additional memory technology models
-
-### Planned for v2.0.0
-- RTL implementation of compute tiles
-- Hardware validation results
-- Extended quantization support (INT2, FP8)
-- Dynamic voltage/frequency scaling
-- Advanced prefetching policies
+- **v1.0.0** (2026-01-10): Initial release with complete Janus-1 design, simulation, and analysis tools
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this changelog.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
-When submitting a pull request, please add your changes to the "Unreleased" section.
+## Citation
 
----
+If you use this work, please cite:
 
-## Links
+```bibtex
+@article{janus1_2026,
+  title={Janus-1: A Systems-Level Design Methodology for Real-Time 
+         Generative AI Acceleration at the Edge},
+  author={Marena, Tommaso and The Janus-1 Design Team},
+  journal={arXiv preprint arXiv:2026.xxxxx},
+  year={2026},
+  url={https://github.com/ChessEngineUS/Janus-1}
+}
+```
 
-- [GitHub Repository](https://github.com/ChessEngineUS/Janus-1)
-- [Google Colab Notebook](https://colab.research.google.com/github/ChessEngineUS/Janus-1/blob/main/Janus_1_Complete_Analysis.ipynb)
-- [Issues](https://github.com/ChessEngineUS/Janus-1/issues)
-- [Discussions](https://github.com/ChessEngineUS/Janus-1/discussions)
+## License
 
----
-
-**Note**: Versions prior to 1.0.0 were internal development releases and are not documented here.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
