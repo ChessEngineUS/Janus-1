@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest an idea for this project
+about: Suggest an idea for Janus-1
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
@@ -10,49 +10,40 @@ assignees: ''
 
 A clear and concise description of the feature you'd like to see.
 
-## Problem/Motivation
+## Motivation
 
-Describe the problem this feature would solve or the use case it enables.
-
-**Is your feature request related to a problem?**
-Yes/No - Please describe.
+Why is this feature needed? What problem does it solve?
 
 ## Proposed Solution
 
-Describe how you envision this feature working.
-
-### API Design (if applicable)
+Describe how you envision this feature working:
 
 ```python
-# Example code showing how the feature would be used
+# Example API or usage
+from src.simulator.janus_sim import JanusSim
+
+# How would you like to use this feature?
 ```
 
 ## Alternatives Considered
 
-Describe any alternative solutions or features you've considered.
+Describe alternative solutions or features you've considered.
+
+## Implementation Details
+
+(Optional) Technical details about how this could be implemented.
 
 ## Additional Context
 
-- **Priority**: [High/Medium/Low]
-- **Area**: [Simulator, Models, Benchmarks, Documentation, Testing, etc.]
-- **Related Issues**: #
+Add any other context, screenshots, or examples about the feature request.
 
-## Implementation Ideas
+## Related Work
 
-(Optional) If you have implementation ideas:
+(Optional) Links to similar features in other projects or relevant papers.
 
-- Key components that need to be modified
-- Potential challenges
-- Dependencies or prerequisites
+## Would you be willing to contribute?
 
-## Benefits
-
-What are the benefits of implementing this feature?
-
-- 
-- 
-- 
-
-## Examples
-
-Provide examples from other projects or papers that implement similar features (if applicable).
+- [ ] Yes, I can implement this
+- [ ] Yes, with guidance
+- [ ] No, but I can test it
+- [ ] No, just suggesting

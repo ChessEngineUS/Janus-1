@@ -14,9 +14,12 @@ A clear and concise description of what the bug is.
 
 Steps to reproduce the behavior:
 
-1. Go to '...'
-2. Run command '...'
-3. See error
+```python
+# Minimal code example that reproduces the issue
+from src.simulator.janus_sim import JanusSim
+
+# Your code here
+```
 
 ## Expected Behavior
 
@@ -24,33 +27,27 @@ A clear and concise description of what you expected to happen.
 
 ## Actual Behavior
 
-What actually happened instead.
-
-## Error Messages
+What actually happened, including error messages:
 
 ```
-Paste any error messages or stack traces here
+# Paste error message or unexpected output here
 ```
 
 ## Environment
 
-- **OS**: [e.g., Ubuntu 22.04, macOS 13, Windows 11]
-- **Python Version**: [e.g., 3.10.5]
-- **Janus-1 Version/Commit**: [e.g., v1.0.0 or commit hash]
-- **Installation Method**: [pip, git clone, Colab]
+- **OS**: [e.g. Ubuntu 22.04, macOS 14, Windows 11]
+- **Python Version**: [e.g. 3.11.5]
+- **Janus-1 Version**: [e.g. 1.0.0]
+- **Installation Method**: [e.g. pip, git clone]
 
 ## Additional Context
 
-Add any other context about the problem here. Include:
-
-- Hardware specifications (CPU, RAM, GPU if applicable)
-- Any modifications made to default configuration
-- Related issues or PRs
+Add any other context about the problem here.
 
 ## Possible Solution
 
-(Optional) If you have ideas on how to fix this, please share!
+(Optional) If you have ideas about what might be causing this or how to fix it.
 
-## Screenshots
+## Related Issues
 
-If applicable, add screenshots to help explain your problem.
+(Optional) Link to related issues if any.

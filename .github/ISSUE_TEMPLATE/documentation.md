@@ -1,6 +1,6 @@
 ---
 name: Documentation Issue
-about: Report an issue with documentation
+about: Report missing, unclear, or incorrect documentation
 title: '[DOCS] '
 labels: documentation
 assignees: ''
@@ -8,48 +8,38 @@ assignees: ''
 
 ## Documentation Issue
 
-<!-- Describe the documentation issue -->
+### Location
 
-## Location
+Where is the documentation problem?
 
-<!-- Where is the problematic documentation? -->
-
-- **File/Page**: [e.g., README.md, docs/architecture.md]
-- **Section**: [e.g., Quick Start, API Reference]
-- **Line Number**: [if applicable]
-
-## Issue Type
-
-- [ ] ❌ Missing documentation
-- [ ] ❗ Incorrect/outdated information
-- [ ] 🤔 Unclear explanation
-- [ ] ✏️ Typo/grammar error
-- [ ] 🔗 Broken link
-- [ ] 📝 Needs more examples
+- [ ] README.md
+- [ ] docs/ files
+- [ ] Code docstrings
+- [ ] Colab notebook
+- [ ] Examples
 - [ ] Other: ___________
 
-## Current Content
+**File/Section**: [e.g. docs/architecture.md, section "Memory Hierarchy"]
 
-<!-- Quote or describe the current documentation -->
+### Issue Type
 
-```markdown
-# Current text/code here
-```
+- [ ] Missing documentation
+- [ ] Unclear/confusing explanation
+- [ ] Incorrect information
+- [ ] Outdated information
+- [ ] Broken links
+- [ ] Typo/grammar
+- [ ] Missing example
+- [ ] Other: ___________
 
-## Suggested Improvement
+### Description
 
-<!-- How should it be improved? -->
+Clear description of the documentation issue:
 
-```markdown
-# Suggested text/code here
-```
+### Suggested Improvement
 
-## Additional Context
+(Optional) How should this be fixed or improved?
 
-<!-- Any other context about the documentation issue -->
+### Additional Context
 
-## Checklist
-
-- [ ] I have checked that this is not already documented elsewhere
-- [ ] I have provided a specific location for the issue
-- [ ] I have suggested an improvement
+Any other information that might be helpful.
