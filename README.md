@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![CI](https://github.com/ChessEngineUS/Janus-1/actions/workflows/ci.yml/badge.svg)](https://github.com/ChessEngineUS/Janus-1/actions/workflows/ci.yml)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ChessEngineUS/Janus-1/blob/main/Janus_1_Complete_Analysis.ipynb)
 [![arXiv](https://img.shields.io/badge/arXiv-2026.xxxxx-b31b1b.svg)](https://arxiv.org)
 
 > A novel processor architecture enabling real-time execution of 7-billion-parameter language models within a sub-5-watt power envelope on edge devices.
@@ -48,10 +50,59 @@ Janus-1 is a specialized processor architecture designed to overcome the "memory
 └────────────────────────────────────────────────────┘
 ```
 
+## 📓 Interactive Notebook
+
+### 🚀 Run Complete Analysis in Google Colab
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ChessEngineUS/Janus-1/blob/main/Janus_1_Complete_Analysis.ipynb)
+
+**One-click reproducible analysis** - Run the entire Janus-1 evaluation pipeline in your browser:
+
+- ✅ **Zero setup required** - All dependencies auto-installed
+- ✅ **5-10 minute runtime** - Complete analysis on free Colab tier
+- ✅ **Publication-ready outputs** - 300 DPI figures + data exports
+- ✅ **Fully reproducible** - Timestamped results with version control
+
+#### What's Included:
+
+1. **KV-Cache Theoretical Analysis** - Memory requirements for FP16/INT8/INT4
+2. **Memory Technology Comparison** - SRAM vs. eDRAM vs. MRAM power/area models
+3. **Quantization Validation** - Accuracy trade-offs on Llama-2 7B
+4. **Cycle-Accurate Simulation** - Memory hierarchy with 99.99% hit rate
+5. **Prefetcher Optimization** - Parameter sweeps for look-ahead depth
+6. **Thermal Analysis** - Junction temperature and thermal margin
+7. **PPA Summary** - Comprehensive Power-Performance-Area metrics
+8. **9-Panel Visualization Suite** - Publication-quality figures
+9. **Data Exports** - CSV/JSON for external analysis
+10. **Summary Report** - Complete methodology and results
+
+#### Quick Start:
+
+```python
+# The notebook automatically:
+# 1. Clones the repository
+# 2. Installs all dependencies
+# 3. Runs complete analysis pipeline
+# 4. Generates all figures and data
+# 5. Creates downloadable results package
+
+# Just click "Runtime → Run all" in Colab!
+```
+
+#### Generated Outputs:
+
+- **Figures**: PNG (300 DPI) + PDF (vector) formats
+- **Data**: 8+ CSV/JSON files with all experimental results
+- **Report**: Comprehensive summary with methodology and findings
+- **Package**: Downloadable ZIP with all outputs
+
 ## 📦 Repository Structure
 
 ```
 Janus-1/
+├── Janus_1_Complete_Analysis.ipynb  # 🆕 Publication-ready Colab notebook
+├── .github/workflows/
+│   └── ci.yml                       # 🆕 CI/CD pipeline configuration
 ├── src/
 │   ├── simulator/
 │   │   ├── janus_sim.py              # Cycle-accurate memory hierarchy simulator
@@ -87,7 +138,15 @@ Janus-1/
 
 ## 🚀 Quick Start
 
-### Installation
+### Option 1: Google Colab (Recommended)
+
+**Fastest way to reproduce all results:**
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ChessEngineUS/Janus-1/blob/main/Janus_1_Complete_Analysis.ipynb)
+
+Click the badge above, then select **Runtime → Run all**. Results will be generated in ~5-10 minutes.
+
+### Option 2: Local Installation
 
 ```bash
 git clone https://github.com/ChessEngineUS/Janus-1.git
@@ -144,7 +203,7 @@ This will:
 ### Comparative Analysis
 
 | Metric            | Janus-1   | Google Edge TPU | NVIDIA Jetson Orin |
-|-------------------|-----------|-----------------|--------------------|
+|-------------------|-----------|-----------------|--------------------||
 | Process           | 3nm       | 16nm            | 8nm                |
 | Performance       | 8.2 TOPS  | 4 TOPS          | 275 TOPS (sparse)  |
 | Power             | ~4.05 W   | ~2 W            | 15-60 W            |
@@ -207,6 +266,14 @@ The Janus-1 design follows a systematic four-step co-design loop:
 
 All results in the paper are fully reproducible:
 
+### Method 1: Google Colab (Easiest)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ChessEngineUS/Janus-1/blob/main/Janus_1_Complete_Analysis.ipynb)
+
+Run all cells → Download results package
+
+### Method 2: Local Scripts
+
 ```bash
 # Run all experiments and generate figures
 bash scripts/reproduce_paper.sh
@@ -218,6 +285,39 @@ python experiments/run_thermal_analysis.py
 ```
 
 Results will be saved to `results/` with timestamps.
+
+## 🔧 CI/CD Pipeline
+
+[![CI Status](https://github.com/ChessEngineUS/Janus-1/actions/workflows/ci.yml/badge.svg)](https://github.com/ChessEngineUS/Janus-1/actions/workflows/ci.yml)
+
+Automated testing on every commit:
+
+- ✅ **Multi-platform testing** - Ubuntu, macOS, Windows
+- ✅ **Multi-version Python** - 3.9, 3.10, 3.11, 3.12
+- ✅ **Code quality checks** - Linting (flake8), formatting (black), type checking (mypy)
+- ✅ **Unit tests** - Pytest with coverage reporting
+- ✅ **Simulation validation** - Memory hierarchy correctness
+- ✅ **Model validation** - KV-cache sizing, power models
+- ✅ **Notebook validation** - Colab notebook integrity checks
+
+### Running Tests Locally
+
+```bash
+# Install test dependencies
+pip install pytest pytest-cov flake8 black mypy
+
+# Run all tests
+pytest tests/ -v --cov=src
+
+# Run linting
+flake8 src tests
+
+# Check formatting
+black --check src tests
+
+# Type checking
+mypy src
+```
 
 ## 🧩 Code Examples
 
@@ -296,6 +396,7 @@ results = run_sweep(
 - **[Methodology](docs/methodology.md)**: Step-by-step design process
 - **[API Reference](docs/api_reference.md)**: Complete code documentation
 - **[Paper](docs/paper.pdf)**: Full research paper with appendices
+- **[Colab Notebook](Janus_1_Complete_Analysis.ipynb)**: Interactive analysis
 
 ## 🧪 Testing
 
@@ -331,7 +432,8 @@ If you use Janus-1 in your research, please cite:
   title={Janus-1: A Systems-Level Design Methodology for Real-Time Generative AI Acceleration at the Edge},
   author={Marena, Tommaso and The Janus-1 Design Team},
   journal={arXiv preprint arXiv:2026.xxxxx},
-  year={2026}
+  year={2026},
+  url={https://github.com/ChessEngineUS/Janus-1}
 }
 ```
 
@@ -361,4 +463,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ for edge AI | [Documentation](https://github.com/ChessEngineUS/Janus-1/wiki) | [Paper](docs/paper.pdf) | [arXiv](https://arxiv.org)**
+**Made with ❤️ for edge AI | [Documentation](https://github.com/ChessEngineUS/Janus-1/wiki) | [Paper](docs/paper.pdf) | [Colab Notebook](Janus_1_Complete_Analysis.ipynb) | [arXiv](https://arxiv.org)**
