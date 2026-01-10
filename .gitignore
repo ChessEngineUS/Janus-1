@@ -74,7 +74,6 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-*.ipynb_checkpoints/
 
 # IPython
 profile_default/
@@ -123,79 +122,42 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# VS Code
+# IDE settings
 .vscode/
-*.code-workspace
-
-# PyCharm
 .idea/
-*.iml
-*.iws
-*.ipr
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-*.lnk
-
-# Linux
-*~
-
-# Project-specific
-results/
-!results/.gitkeep
-experiments/results/
-*.csv
-*.json
-*.pkl
-*.pickle
-*.png
-*.pdf
-*.jpg
-*.jpeg
-!docs/**/*.png
-!docs/**/*.pdf
-
-# Temporary files
-*.tmp
-*.temp
 *.swp
 *.swo
 *~
+.DS_Store
+
+# Project specific
+results/
+*.png
+*.pdf
+*.csv
+*.json
+!requirements*.json
+
+# Except for example results
+!docs/figures/*.png
+!docs/figures/*.pdf
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Large files
+*.h5
+*.hdf5
+*.pkl
+*.pickle
 
 # Logs
 *.log
-logs/
+*.out
 
-# Data files (large datasets)
-data/
-!data/.gitkeep
-*.h5
-*.hdf5
-*.parquet
-
-# Model checkpoints
-*.pt
-*.pth
-*.ckpt
-*.safetensors
-
-# Profiling
-*.prof
-*.lprof
-
-# Documentation builds
-docs/_build/
-docs/_static/
-docs/_templates/
-
-# Backup files
-*.bak
-*.backup
+# OS files
+Thumbs.db
+.Spotlight-V100
+.Trashes

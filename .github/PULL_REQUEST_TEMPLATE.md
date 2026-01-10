@@ -1,8 +1,8 @@
 ## Description
 
-Please include a summary of the changes and the related issue. Include relevant motivation and context.
+Please include a summary of the changes and the motivation behind them.
 
-Fixes # (issue)
+Fixes # (issue number)
 
 ## Type of Change
 
@@ -14,46 +14,74 @@ Please delete options that are not relevant.
 - [ ] Documentation update
 - [ ] Performance improvement
 - [ ] Code refactoring
-- [ ] Test improvement
+- [ ] Test addition/improvement
+- [ ] CI/CD improvement
 
 ## Changes Made
 
 List the specific changes:
 
-- 
-- 
-- 
+- Added/modified X in module Y
+- Fixed Z bug in function W
+- Updated documentation for...
 
 ## Testing
 
-- [ ] Tests pass locally (`pytest tests/ -v`)
-- [ ] New tests added for new functionality
-- [ ] Coverage maintained or improved
-- [ ] Linting passes (`flake8 src tests`)
-- [ ] Formatting checked (`black --check src tests`)
+Describe the tests you ran and their results:
 
-## Documentation
+```bash
+# Commands used for testing
+pytest tests/ -v
+black --check src tests
+flake8 src tests
+```
 
-- [ ] Code includes docstrings (Google style)
-- [ ] README.md updated (if needed)
-- [ ] CHANGELOG.md updated
-- [ ] Type hints added for new functions
+- [ ] All existing tests pass
+- [ ] New tests added for new features
+- [ ] Manual testing performed
+- [ ] No new warnings introduced
+
+## Test Results
+
+```
+Paste relevant test output here
+```
 
 ## Checklist
 
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published
+Before submitting, please ensure:
 
-## Additional Context
+- [ ] Code follows project style guidelines (Black, flake8)
+- [ ] Self-review of code performed
+- [ ] Comments added for complex logic
+- [ ] Documentation updated (README, docstrings, examples)
+- [ ] No breaking changes (or clearly documented if unavoidable)
+- [ ] Tests provide good coverage for changes
+- [ ] All CI checks pass
+- [ ] CHANGELOG.md updated (for significant changes)
 
-Add any other context about the pull request here. Include screenshots, benchmarks, or performance comparisons if applicable.
+## Performance Impact
 
-## Reviewer Notes
+If applicable, describe any performance implications:
 
-Any specific areas you'd like reviewers to focus on?
+- [ ] No performance impact
+- [ ] Performance improved (describe how)
+- [ ] Performance degraded (explain why necessary)
+
+## Screenshots/Examples
+
+If applicable, add screenshots or code examples demonstrating the changes:
+
+```python
+# Example usage of new feature
+```
+
+## Additional Notes
+
+Any additional information, concerns, or context for reviewers:
+
+## Related Issues/PRs
+
+- Related to #issue_number
+- Depends on #pr_number
+- Supersedes #old_pr_number

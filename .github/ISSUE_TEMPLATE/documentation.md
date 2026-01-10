@@ -4,42 +4,59 @@ about: Report missing, unclear, or incorrect documentation
 title: '[DOCS] '
 labels: documentation
 assignees: ''
+
 ---
 
 ## Documentation Issue
 
 ### Location
 
-Where is the documentation problem?
-
+Where is the documentation issue?
 - [ ] README.md
-- [ ] docs/ files
-- [ ] Code docstrings
-- [ ] Colab notebook
-- [ ] Examples
-- [ ] Other: ___________
-
-**File/Section**: [e.g. docs/architecture.md, section "Memory Hierarchy"]
+- [ ] API Reference
+- [ ] Code Examples
+- [ ] Docstrings
+- [ ] Colab Notebook
+- [ ] Other: _____________
 
 ### Issue Type
 
 - [ ] Missing documentation
-- [ ] Unclear/confusing explanation
+- [ ] Unclear explanation
 - [ ] Incorrect information
-- [ ] Outdated information
-- [ ] Broken links
+- [ ] Outdated content
+- [ ] Broken link
 - [ ] Typo/grammar
-- [ ] Missing example
-- [ ] Other: ___________
+- [ ] Other: _____________
 
 ### Description
 
-Clear description of the documentation issue:
+Clearly describe what's wrong or missing.
+
+### Current Documentation
+
+If applicable, quote or screenshot the current documentation:
+
+```
+Current text or code here
+```
 
 ### Suggested Improvement
 
-(Optional) How should this be fixed or improved?
+How should it be fixed or improved?
+
+```
+Suggested new text or code here
+```
 
 ### Additional Context
 
-Any other information that might be helpful.
+- Why is this confusing or incorrect?
+- What were you trying to accomplish?
+- Are there related documentation issues?
+
+### Willing to Help
+
+- [ ] I can submit a PR with the fix
+- [ ] I need help understanding how to fix it
+- [ ] Just reporting the issue
