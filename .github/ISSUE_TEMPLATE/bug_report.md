@@ -8,7 +8,7 @@ assignees: ''
 
 ## Bug Description
 
-<!-- A clear and concise description of what the bug is -->
+A clear and concise description of what the bug is.
 
 ## To Reproduce
 
@@ -20,46 +20,37 @@ Steps to reproduce the behavior:
 
 ## Expected Behavior
 
-<!-- A clear and concise description of what you expected to happen -->
+A clear and concise description of what you expected to happen.
 
 ## Actual Behavior
 
-<!-- What actually happened -->
+What actually happened instead.
 
-## Error Output
+## Error Messages
 
 ```
-# Paste the full error message or stack trace here
+Paste any error messages or stack traces here
 ```
 
 ## Environment
 
-- **OS**: [e.g., Ubuntu 22.04, macOS 14, Windows 11]
+- **OS**: [e.g., Ubuntu 22.04, macOS 13, Windows 11]
 - **Python Version**: [e.g., 3.10.5]
-- **Janus-1 Version**: [e.g., 1.0.0]
-- **Installation Method**: [e.g., pip, git clone]
-
-## Minimal Reproducible Example
-
-```python
-# Provide a minimal code example that reproduces the issue
-```
-
-## Screenshots
-
-<!-- If applicable, add screenshots to help explain your problem -->
+- **Janus-1 Version/Commit**: [e.g., v1.0.0 or commit hash]
+- **Installation Method**: [pip, git clone, Colab]
 
 ## Additional Context
 
-<!-- Add any other context about the problem here -->
+Add any other context about the problem here. Include:
+
+- Hardware specifications (CPU, RAM, GPU if applicable)
+- Any modifications made to default configuration
+- Related issues or PRs
 
 ## Possible Solution
 
-<!-- If you have suggestions on how to fix the bug -->
+(Optional) If you have ideas on how to fix this, please share!
 
-## Checklist
+## Screenshots
 
-- [ ] I have searched existing issues to ensure this is not a duplicate
-- [ ] I have provided a minimal reproducible example
-- [ ] I have included the complete error message
-- [ ] I have specified my environment details
+If applicable, add screenshots to help explain your problem.
