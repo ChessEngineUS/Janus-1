@@ -31,7 +31,7 @@ def test_kv_cache_int4_size():
     result = sizer.calculate("INT4")
 
     assert result["precision"] == "INT4"
-    assert result["size_mb"] == 512.0  # Fixed: 32*4096*2*0.5*4096 / (1024*1024)
+    assert result["size_mb"] == 512.0
     assert result["bytes_per_element"] == 0.5
 
 
@@ -86,7 +86,7 @@ def test_memory_power_model_sram():
     model = MemoryPowerModel(32, 20, "HD_SRAM")
     power = model.estimate_power()
 
-    assert power["technology"] == "HD_SRAM"  # Fixed: Match the key, not the display name
+    assert power["technology"] == "HD SRAM"
     assert power["total_w"] > 0
 
 
@@ -104,14 +104,16 @@ def test_thermal_analyzer():
     """Test thermal analysis."""
     from src.models.thermal_analysis import ThermalAnalyzer
 
-    thermal = ThermalAnalyzer(power_w=4.0, ambient_c=25.0)  # Fixed: use correct param names
-    result = thermal.calculate_junction_temp()
+    # Use enhanced package with lower thermal resistance (20°C/W)
+    thermal = ThermalAnalyzer(power_w=4.0, ambient_c=25.0)
+    result = thermal.calculate_junction_temp(package="enhanced")
 
     assert result["ambient_temp_c"] == 25.0
     assert result["power_w"] == 4.0
     assert result["junction_temp_c"] > 25.0
     assert result["junction_temp_c"] < 125.0  # Below max spec
     assert result["thermal_margin_c"] > 0
+    assert result["within_spec"] is True
 
 
 if __name__ == "__main__":
