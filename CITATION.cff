@@ -1,0 +1,69 @@
+# Citation File Format (CFF) for Janus-1
+# This file allows automatic citation generation on GitHub and Zenodo
+
+cff-version: 1.2.0
+title: 'Janus-1: Real-Time Generative AI Acceleration at the Edge'
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - family-names: Marena
+    given-names: Tommaso
+    orcid: 'https://orcid.org/0000-0000-0000-0000'  # Update with your ORCID if available
+    affiliation: Independent Researcher
+repository-code: 'https://github.com/ChessEngineUS/Janus-1'
+url: 'https://github.com/ChessEngineUS/Janus-1'
+abstract: >
+  Janus-1 is a novel processor architecture designed for real-time execution
+  of large language models (LLMs) at the edge with sub-5-watt power consumption.
+  The system achieves 15.8× better memory efficiency compared to existing edge
+  accelerators through a co-designed approach combining INT4 quantization,
+  heterogeneous SRAM+eDRAM memory hierarchy, and FSM-based stream prefetching.
+  
+  Key achievements include:
+  - 8.2 TOPS compute performance (INT4/INT8)
+  - 4.05W total power consumption
+  - 256 MB on-chip KV-cache
+  - 99.99% cache hit rate
+  - 63 MB/W memory efficiency
+  - 1.0 cycle P99 read latency
+  
+  The project includes a cycle-accurate simulator, power/area/thermal models,
+  comprehensive test suite, and publication-ready analysis pipeline.
+keywords:
+  - edge-ai
+  - large-language-models
+  - processor-architecture
+  - memory-hierarchy
+  - quantization
+  - prefetching
+  - hardware-acceleration
+  - systems-design
+  - eDRAM
+  - low-power
+license: MIT
+version: 1.0.0
+date-released: '2026-01-10'
+commit: main
+
+# Preferred citation format
+preferred-citation:
+  type: software
+  title: 'Janus-1: Real-Time Generative AI Acceleration at the Edge'
+  authors:
+    - family-names: Marena
+      given-names: Tommaso
+  year: 2026
+  url: 'https://github.com/ChessEngineUS/Janus-1'
+  version: 1.0.0
+  
+# References (update when paper is published)
+references:
+  - type: article
+    title: 'Janus-1: A Co-Designed Processor for Real-Time LLM Inference at the Edge'
+    authors:
+      - family-names: Marena
+        given-names: Tommaso
+    year: 2026
+    # journal: 'IEEE Transactions on Computers'  # Uncomment when published
+    # doi: '10.1109/TC.2026.xxxxx'  # Uncomment when DOI available
+    status: 'in-preparation'
