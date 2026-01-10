@@ -141,6 +141,26 @@ class SRAMAreaModel:
         print(f"\n{'='*60}\n")
 
 
+def estimate_sram_area(
+    cache_size_mb: float,
+    process_node_nm: int = 3,
+    efficiency: float = 0.65
+) -> float:
+    """Convenience function to estimate SRAM area.
+    
+    Args:
+        cache_size_mb: Cache capacity in megabytes
+        process_node_nm: Process technology node in nanometers
+        efficiency: Array efficiency (0.0-1.0)
+    
+    Returns:
+        Total SRAM area in mm²
+    """
+    model = SRAMAreaModel(efficiency=efficiency)
+    result = model.estimate(cache_size_mb, process_node_nm)
+    return result['total_mm2']
+
+
 if __name__ == "__main__":
     model = SRAMAreaModel(efficiency=0.65)
     
