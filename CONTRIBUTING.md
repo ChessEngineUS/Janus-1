@@ -1,6 +1,6 @@
 # Contributing to Janus-1
 
-Thank you for your interest in contributing to Janus-1! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Janus-1! This document provides guidelines and best practices for contributing to the project.
 
 ## Table of Contents
 
@@ -10,33 +10,28 @@ Thank you for your interest in contributing to Janus-1! This document provides g
 - [Coding Standards](#coding-standards)
 - [Testing Guidelines](#testing-guidelines)
 - [Documentation](#documentation)
-- [Submitting Changes](#submitting-changes)
+- [Pull Request Process](#pull-request-process)
 - [Areas for Contribution](#areas-for-contribution)
-
----
 
 ## Code of Conduct
 
 ### Our Pledge
 
-We are committed to providing a welcoming and inclusive environment for all contributors, regardless of experience level, background, or identity.
+We are committed to providing a welcoming and inclusive environment for all contributors, regardless of background or experience level.
 
-### Our Standards
+### Expected Behavior
 
-**Positive behaviors include:**
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints and experiences
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
-- Showing empathy towards other community members
+- Be respectful and professional
+- Provide constructive feedback
+- Focus on technical merit
+- Welcome newcomers and help them learn
 
-**Unacceptable behaviors include:**
-- Harassment, trolling, or insulting/derogatory comments
-- Public or private harassment
-- Publishing others' private information without permission
-- Other conduct which could reasonably be considered inappropriate
+### Unacceptable Behavior
 
----
+- Harassment or discrimination
+- Trolling or inflammatory comments
+- Publishing others' private information
+- Any conduct that would be inappropriate in a professional setting
 
 ## Getting Started
 
@@ -44,255 +39,235 @@ We are committed to providing a welcoming and inclusive environment for all cont
 
 - Python 3.9 or higher
 - Git
-- Basic understanding of computer architecture and machine learning
+- Basic understanding of processor architecture and memory systems
 
 ### Setting Up Your Development Environment
 
-1. **Fork the repository**
-   ```bash
-   # Click the "Fork" button on GitHub
-   ```
+```bash
+# Fork the repository on GitHub, then clone your fork
+git clone https://github.com/YOUR_USERNAME/Janus-1.git
+cd Janus-1
 
-2. **Clone your fork**
-   ```bash
-   git clone https://github.com/YOUR-USERNAME/Janus-1.git
-   cd Janus-1
-   ```
+# Add upstream remote
+git remote add upstream https://github.com/ChessEngineUS/Janus-1.git
 
-3. **Add upstream remote**
-   ```bash
-   git remote add upstream https://github.com/ChessEngineUS/Janus-1.git
-   ```
+# Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-4. **Create a virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+# Install dependencies including dev tools
+pip install -r requirements.txt
+pip install -r requirements-dev.txt  # If available
 
-5. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   pip install -r requirements-dev.txt  # Development dependencies
-   ```
+# Install pre-commit hooks (recommended)
+pip install pre-commit
+pre-commit install
 
-6. **Verify installation**
-   ```bash
-   pytest tests/ -v
-   ```
-
----
+# Verify installation
+pytest tests/ -v
+```
 
 ## Development Workflow
 
-### 1. Create a Feature Branch
+### Creating a Branch
 
 ```bash
 # Update your main branch
 git checkout main
 git pull upstream main
 
-# Create a new branch
+# Create a feature branch
 git checkout -b feature/your-feature-name
+# or
+git checkout -b fix/issue-number-description
 ```
 
-### 2. Make Your Changes
+### Branch Naming Convention
 
-- Write clean, well-documented code
-- Follow the coding standards (see below)
-- Add tests for new functionality
-- Update documentation as needed
+- `feature/` - New features
+- `fix/` - Bug fixes
+- `docs/` - Documentation updates
+- `refactor/` - Code refactoring
+- `test/` - Test additions or modifications
+- `perf/` - Performance improvements
 
-### 3. Test Your Changes
+### Making Changes
 
-```bash
-# Run tests
-pytest tests/ -v
+1. **Write clear, focused commits**:
+   ```bash
+   git commit -m "Add INT4 quantization validation for Mistral model"
+   ```
 
-# Check code coverage
-pytest tests/ --cov=src --cov-report=term
+2. **Keep commits atomic** - One logical change per commit
 
-# Run linting
-flake8 src tests --max-line-length=88 --extend-ignore=E203,W503
-
-# Check formatting
-black --check src tests
-
-# Type checking (optional but recommended)
-mypy src --ignore-missing-imports
-```
-
-### 4. Commit Your Changes
-
-```bash
-# Stage changes
-git add .
-
-# Commit with descriptive message
-git commit -m "Add: Brief description of changes"
-```
-
-**Commit Message Guidelines:**
-- Use present tense ("Add feature" not "Added feature")
-- Use imperative mood ("Fix bug" not "Fixes bug")
-- Start with a verb: Add, Fix, Update, Remove, Refactor
-- Keep first line under 72 characters
-- Add detailed description if needed
-
-Examples:
-```
-Add: Implement HBM memory technology model
-Fix: Correct P99 latency calculation in simulator
-Update: Enhance prefetcher FSM documentation
-Refactor: Simplify bank conflict logic
-```
-
-### 5. Push and Create Pull Request
-
-```bash
-# Push to your fork
-git push origin feature/your-feature-name
-```
-
-Then:
-1. Go to GitHub and create a Pull Request
-2. Fill out the PR template
-3. Link related issues if applicable
-4. Wait for review and address feedback
-
----
+3. **Write descriptive commit messages**:
+   ```
+   Add support for multi-head attention profiling
+   
+   - Implement attention trace generator
+   - Add cycle-accurate timing model
+   - Include validation against PyTorch reference
+   - Update documentation with usage examples
+   
+   Closes #42
+   ```
 
 ## Coding Standards
 
 ### Python Style Guide
 
-We follow [PEP 8](https://pep8.org/) with some modifications:
+We follow PEP 8 with some modifications:
 
 - **Line length**: 88 characters (Black default)
-- **Formatting**: Use [Black](https://github.com/psf/black) for automatic formatting
-- **Import order**: Use [isort](https://pycqa.github.io/isort/) for organizing imports
-- **Type hints**: Use type hints for function signatures
-- **Docstrings**: Use Google-style docstrings
+- **Imports**: Use absolute imports, group by stdlib/third-party/local
+- **Type hints**: Required for all function signatures
+- **Docstrings**: Google-style docstrings for all public APIs
+
+### Code Formatting
+
+```bash
+# Format code with Black
+black src tests
+
+# Check formatting
+black --check src tests
+
+# Sort imports
+isort src tests
+```
+
+### Linting
+
+```bash
+# Run flake8
+flake8 src tests --max-line-length=88 --extend-ignore=E203,W503
+
+# Run mypy for type checking
+mypy src --ignore-missing-imports
+```
 
 ### Example Code Style
 
 ```python
-from typing import Dict, List, Optional
-from dataclasses import dataclass
+"""Module docstring explaining purpose."""
+
+import collections
+import sys
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
+
+from src.models.base import BaseModel
 
 
-@dataclass
-class SimulationConfig:
-    """Configuration for memory hierarchy simulation.
+class MemoryHierarchy:
+    """Simulate a two-tier memory hierarchy.
     
+    This class implements a cycle-accurate model of SRAM + eDRAM
+    memory system with bank conflicts and queuing delays.
+    
+    Args:
+        t1_size_mb: Tier-1 SRAM size in megabytes
+        t2_size_mb: Tier-2 eDRAM size in megabytes
+        cache_line_size: Cache line size in bytes
+        
     Attributes:
-        cache_size_mb: Size of cache in megabytes.
-        latency_cycles: Access latency in clock cycles.
-        num_banks: Number of memory banks.
-    """
-    cache_size_mb: int = 32
-    latency_cycles: int = 1
-    num_banks: int = 4
-
-
-def calculate_hit_rate(
-    hits: int, 
-    misses: int, 
-    precision: Optional[int] = None
-) -> float:
-    """Calculate cache hit rate percentage.
-    
-    Args:
-        hits: Number of cache hits.
-        misses: Number of cache misses.
-        precision: Optional decimal places for rounding.
-    
-    Returns:
-        Hit rate as percentage (0-100).
-    
-    Raises:
-        ValueError: If hits or misses are negative.
-    
+        cycle: Current simulation cycle
+        hit_rate: Tier-1 cache hit rate
+        
     Example:
-        >>> calculate_hit_rate(99, 1)
-        99.0
+        >>> mem = MemoryHierarchy(t1_size_mb=32, t2_size_mb=224)
+        >>> mem.access(0x1000, op="READ")
+        >>> print(f"Hit rate: {mem.hit_rate:.2f}%")
     """
-    if hits < 0 or misses < 0:
-        raise ValueError("Hits and misses must be non-negative")
     
-    total = hits + misses
-    if total == 0:
-        return 0.0
+    def __init__(
+        self,
+        t1_size_mb: int = 32,
+        t2_size_mb: int = 224,
+        cache_line_size: int = 128,
+    ) -> None:
+        """Initialize memory hierarchy."""
+        self.t1_size_mb = t1_size_mb
+        self.t2_size_mb = t2_size_mb
+        self.cache_line_size = cache_line_size
+        self._init_state()
     
-    rate = (hits / total) * 100
-    return round(rate, precision) if precision else rate
+    def access(
+        self, 
+        addr: int, 
+        op: str = "READ"
+    ) -> Tuple[bool, int]:
+        """Access memory at specified address.
+        
+        Args:
+            addr: Memory address to access
+            op: Operation type ("READ" or "WRITE")
+            
+        Returns:
+            Tuple of (hit, latency_cycles)
+            
+        Raises:
+            ValueError: If operation type is invalid
+        """
+        if op not in ["READ", "WRITE"]:
+            raise ValueError(f"Invalid operation: {op}")
+        
+        # Implementation...
+        return True, 1
 ```
-
-### Docstring Format (Google Style)
-
-```python
-def function_name(param1: Type1, param2: Type2) -> ReturnType:
-    """Brief one-line description.
-    
-    More detailed description if needed. Explain what the function does,
-    any important algorithms or assumptions, and key behaviors.
-    
-    Args:
-        param1: Description of param1.
-        param2: Description of param2.
-    
-    Returns:
-        Description of return value.
-    
-    Raises:
-        ExceptionType: When and why this exception is raised.
-    
-    Example:
-        >>> function_name(value1, value2)
-        expected_output
-    """
-```
-
----
 
 ## Testing Guidelines
 
 ### Writing Tests
-
-- Place tests in `tests/` directory
-- Name test files as `test_<module_name>.py`
-- Name test functions as `test_<functionality>`
-- Use pytest fixtures for common setup
-- Aim for >80% code coverage
-
-### Test Structure
 
 ```python
 import pytest
 from src.simulator.janus_sim import JanusSim
 
 
-@pytest.fixture
-def basic_sim():
-    """Fixture providing a basic simulator instance."""
-    return JanusSim()
-
-
-def test_simulator_initialization(basic_sim):
-    """Test that simulator initializes with correct defaults."""
-    assert basic_sim.config.t1_sram_size_mb == 32
-    assert basic_sim.config.t1_latency_cycles == 1
-    assert basic_sim.cycle == 0
-
-
-def test_cache_hit_simple(basic_sim):
-    """Test basic cache hit scenario."""
-    trace = [("READ", 0x1000)]
-    basic_sim.run(trace)
-    metrics = basic_sim.get_metrics()
+class TestJanusSim:
+    """Test suite for Janus simulator."""
     
-    # First access is always a miss
-    assert metrics.t1_misses == 1
+    def test_cache_hit_basic(self):
+        """Test that repeated accesses result in cache hits."""
+        sim = JanusSim()
+        trace = [("READ", 0x1000)] * 100
+        
+        sim.run(trace)
+        metrics = sim.get_metrics()
+        
+        assert metrics.hit_rate > 99.0
+        assert metrics.t1_hits == 99
+        assert metrics.t1_misses == 1
+    
+    def test_stream_prefetch(self):
+        """Test that sequential access triggers prefetching."""
+        sim = JanusSim()
+        # Generate sequential access pattern
+        trace = [("READ", 0x1000 + i * 128) for i in range(100)]
+        
+        sim.run(trace)
+        metrics = sim.get_metrics()
+        
+        # Should achieve very high hit rate with prefetching
+        assert metrics.hit_rate > 95.0
+        assert metrics.prefetch_bandwidth > 0
+    
+    @pytest.mark.parametrize("lookahead", [4, 8, 16, 32])
+    def test_prefetch_lookahead(self, lookahead):
+        """Test different prefetch lookahead depths."""
+        from src.simulator.janus_sim import SimulationConfig
+        
+        config = SimulationConfig(prefetch_look_ahead=lookahead)
+        sim = JanusSim(config)
+        
+        trace = [("READ", 0x1000 + i * 128) for i in range(100)]
+        sim.run(trace)
+        
+        metrics = sim.get_metrics()
+        assert metrics.total_cycles > 0
 ```
 
 ### Running Tests
@@ -304,154 +279,189 @@ pytest tests/ -v
 # Run specific test file
 pytest tests/test_simulator.py -v
 
-# Run specific test function
-pytest tests/test_simulator.py::test_cache_hit_simple -v
-
 # Run with coverage
-pytest tests/ --cov=src --cov-report=html
+pytest tests/ -v --cov=src --cov-report=html
 
-# Run with detailed output
-pytest tests/ -vv -s
+# Run only fast tests (exclude slow integration tests)
+pytest tests/ -v -m "not slow"
 ```
 
----
+### Test Coverage Requirements
+
+- All new code must have tests
+- Aim for >80% code coverage
+- Critical paths must have 100% coverage
+- Include edge cases and error conditions
 
 ## Documentation
 
-### Code Documentation
+### Docstring Format (Google Style)
 
-- **All public functions/classes** must have docstrings
-- **Complex algorithms** should have inline comments
-- **Type hints** should be used for all function signatures
-- **Examples** should be included in docstrings where helpful
+```python
+def calculate_power(
+    cache_size_mb: float,
+    bandwidth_gb_s: float,
+    technology: str = "eDRAM"
+) -> Dict[str, float]:
+    """Calculate power consumption for memory technology.
+    
+    Estimates dynamic and static power based on cache size,
+    bandwidth, and technology parameters.
+    
+    Args:
+        cache_size_mb: Cache size in megabytes
+        bandwidth_gb_s: Memory bandwidth in GB/s
+        technology: Technology type ("SRAM", "eDRAM", "MRAM")
+        
+    Returns:
+        Dictionary with keys:
+            - 'dynamic_w': Dynamic power in watts
+            - 'static_w': Static power in watts
+            - 'total_w': Total power in watts
+            
+    Raises:
+        ValueError: If technology is not supported
+        
+    Example:
+        >>> power = calculate_power(224, 20, "eDRAM")
+        >>> print(f"Total: {power['total_w']:.2f} W")
+        Total: 1.15 W
+        
+    Note:
+        Power models are based on 3nm process technology.
+        Static power includes leakage and refresh overhead.
+        
+    References:
+        [1] Smith et al., "eDRAM Power Modeling", ISSCC 2024
+    """
+    # Implementation...
+```
 
 ### Updating Documentation
 
-When making changes, update:
-- Function/class docstrings
-- README.md (if adding new features)
-- API reference in `docs/api_reference.md`
-- Architecture docs if changing design
+- Update relevant `.md` files in `docs/`
+- Add examples to docstrings
+- Update README.md if adding major features
+- Include references to papers/standards where applicable
 
----
+## Pull Request Process
 
-## Submitting Changes
+### Before Submitting
 
-### Pull Request Process
+1. **Update your branch**:
+   ```bash
+   git fetch upstream
+   git rebase upstream/main
+   ```
 
-1. **Ensure all tests pass** and coverage is maintained
-2. **Update documentation** for any new features
-3. **Add entries to CHANGELOG.md** under "Unreleased"
-4. **Create descriptive PR title** following commit message guidelines
-5. **Fill out PR template** completely
-6. **Request review** from maintainers
+2. **Run the full test suite**:
+   ```bash
+   pytest tests/ -v --cov=src
+   black --check src tests
+   flake8 src tests
+   mypy src
+   ```
 
-### Pull Request Template
+3. **Update documentation** if needed
+
+4. **Write a clear PR description**
+
+### PR Template
 
 ```markdown
 ## Description
+
 Brief description of changes and motivation.
 
 ## Type of Change
+
 - [ ] Bug fix (non-breaking change fixing an issue)
 - [ ] New feature (non-breaking change adding functionality)
 - [ ] Breaking change (fix or feature causing existing functionality to change)
 - [ ] Documentation update
+- [ ] Performance improvement
+
+## Changes Made
+
+- Added X feature to support Y
+- Fixed Z bug in module A
+- Refactored B for better performance
 
 ## Testing
-- [ ] Tests pass locally
-- [ ] New tests added for new functionality
-- [ ] Coverage maintained or improved
+
+- [ ] All existing tests pass
+- [ ] New tests added for new features
+- [ ] Manual testing performed
 
 ## Checklist
+
 - [ ] Code follows project style guidelines
 - [ ] Self-review completed
+- [ ] Comments added for complex logic
 - [ ] Documentation updated
-- [ ] CHANGELOG.md updated
+- [ ] No new warnings generated
+- [ ] Tests provide good coverage
+
+## Related Issues
+
+Closes #123
+Related to #456
 ```
 
 ### Review Process
 
-1. Maintainers will review your PR within 1-2 weeks
-2. Address any requested changes
-3. Once approved, maintainers will merge your PR
-4. Your contribution will be included in the next release
-
----
+1. Automated CI checks must pass
+2. At least one maintainer review required
+3. All review comments must be addressed
+4. Final approval from project lead
 
 ## Areas for Contribution
 
 ### High Priority
 
-1. **FPGA/Hardware Implementation**
-   - Verilog/SystemVerilog RTL for prefetcher
-   - FPGA emulation of memory hierarchy
-   - Synthesis results and timing analysis
-
-2. **Extended Workloads**
-   - Encoder-decoder model traces
-   - Vision transformer memory patterns
-   - Real hardware profiling data
-
-3. **Alternative Memory Technologies**
-   - HBM (High Bandwidth Memory) modeling
-   - ReRAM/PCRAM analysis
-   - 3D-stacked memory architectures
+- **FPGA Implementation**: Verilog/SystemVerilog for prefetcher FSM
+- **Extended Validation**: Additional LLM models (Mistral, Phi-2, Gemma)
+- **Workload Traces**: Real hardware profiling data
+- **Power Optimization**: Dynamic voltage/frequency scaling
 
 ### Medium Priority
 
-4. **Optimization Algorithms**
-   - Adaptive prefetching strategies
-   - Dynamic power management
-   - Thermal-aware scheduling
+- **Documentation**: More examples and tutorials
+- **Visualization**: Interactive dashboards for results
+- **Memory Technologies**: HBM, ReRAM modeling
+- **Compiler Integration**: INT4 code generation
 
-5. **Validation and Benchmarking**
-   - Additional LLM models (Mistral, Phi-2, Gemma)
-   - Comparison with commercial accelerators
-   - Real-world deployment scenarios
+### Good First Issues
 
-6. **Visualization and Analysis**
-   - Interactive dashboards
-   - Real-time simulation visualization
-   - Performance profiling tools
+- Documentation improvements
+- Test coverage expansion
+- Code cleanup and refactoring
+- Example notebooks
+- Bug fixes with clear reproduction steps
 
-### Documentation
-
-7. **Tutorials and Examples**
-   - Getting started guides
-   - Advanced usage examples
-   - Integration with ML frameworks
-
-8. **Academic Papers**
-   - Extended literature review
-   - Comparative analysis
-   - Case studies
-
----
+Look for issues tagged with `good-first-issue` or `help-wanted`.
 
 ## Questions?
 
 If you have questions:
 
-- **GitHub Issues**: [Create an issue](https://github.com/ChessEngineUS/Janus-1/issues)
-- **Discussions**: [Join the discussion](https://github.com/ChessEngineUS/Janus-1/discussions)
-- **Email**: Contact maintainers via GitHub
-
----
-
-## License
-
-By contributing to Janus-1, you agree that your contributions will be licensed under the MIT License.
-
----
+- Check existing [documentation](docs/)
+- Search [issues](https://github.com/ChessEngineUS/Janus-1/issues)
+- Ask in [discussions](https://github.com/ChessEngineUS/Janus-1/discussions)
+- Contact maintainers
 
 ## Recognition
 
-All contributors will be recognized in:
-- Repository README.md
-- Release notes
-- Academic paper acknowledgments (for significant contributions)
+All contributors will be:
+
+- Listed in CONTRIBUTORS.md
+- Acknowledged in release notes
+- Credited in academic publications (for significant contributions)
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the MIT License.
 
 ---
 
-Thank you for contributing to Janus-1! Your efforts help advance edge AI research. 🚀
+Thank you for contributing to Janus-1! 🚀
