@@ -1,376 +1,264 @@
-"""Memory Access Trace Generation for LLM Inference
+"""Memory Trace Generation for LLM Inference Workloads.
 
-Generates synthetic and validated memory access patterns for Large Language Model
-inference workloads. Includes statistical validation and realistic access patterns.
+This module generates synthetic memory access traces that mimic the behavior
+of large language model inference, particularly the attention mechanism's
+KV-cache access patterns.
 
 Author: The Janus-1 Design Team
 License: MIT
 """
 
 import numpy as np
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Optional
 from dataclasses import dataclass
-import warnings
 
 
 @dataclass
-class TraceStatistics:
-    """Statistical properties of a memory trace."""
-    
-    total_accesses: int
-    unique_addresses: int
-    spatial_locality: float  # Fraction of sequential accesses
-    temporal_locality: float  # Reuse rate
-    stride_distribution: Dict[int, int]
-    address_entropy: float  # Shannon entropy of address distribution
-    working_set_size_kb: float
-    mean_reuse_distance: float
-    
-
-class LLMTraceGenerator:
-    """Generate realistic memory traces for LLM inference.
-    
-    This generator creates memory access patterns that accurately reflect
-    the behavior of Transformer-based language models during inference,
-    specifically for the attention mechanism's KV-cache access patterns.
-    
-    The trace generation is based on empirical observations from profiling
-    real LLM inference workloads (GPT-2, Llama-2, etc.) and validated against
-    published memory access characteristics.
+class TraceConfig:
+    """Configuration for trace generation.
     
     Attributes:
-        context_length: Number of tokens in context (T)
-        hidden_dim: Hidden dimension size (d_model)
-        num_layers: Number of transformer layers
-        num_heads: Number of attention heads
-        cache_line_size: Cache line size in bytes
-        precision_bytes: Bytes per element (0.5 for INT4, 1 for INT8, etc.)
+        context_length: Number of tokens in context.
+        hidden_dim: Hidden dimension size.
+        cache_line_size: Cache line size in bytes.
+        precision: Data precision ('FP32', 'FP16', 'INT8', 'INT4').
+        base_addr: Starting memory address.
+        num_layers: Number of transformer layers.
+    """
+    context_length: int = 2048
+    hidden_dim: int = 4096
+    cache_line_size: int = 128
+    precision: str = "INT4"
+    base_addr: int = 0x1000000
+    num_layers: int = 32
+
+
+class TraceGenerator:
+    """Generate memory access traces for LLM inference.
     
-    References:
-        [1] Kwon et al. "Efficient Memory Management for Large Language Model 
-            Serving with PagedAttention." SOSP 2023.
-        [2] Aminabadi et al. "DeepSpeed Inference." SC 2022.
+    This class creates synthetic traces that model the sequential access
+    pattern of transformer attention over KV-cache during inference.
+    
+    Example:
+        >>> generator = TraceGenerator()
+        >>> trace = generator.generate_attention_trace()
+        >>> print(f"Generated {len(trace)} memory operations")
+        Generated 2048 memory operations
     """
     
-    def __init__(
-        self,
-        context_length: int = 2048,
-        hidden_dim: int = 4096,
-        num_layers: int = 32,
-        num_heads: int = 32,
-        cache_line_size: int = 128,
-        precision_bytes: float = 0.5,  # INT4
-        seed: Optional[int] = None
-    ):
-        """Initialize trace generator with model configuration.
+    PRECISION_BYTES = {
+        'FP32': 4,
+        'FP16': 2,
+        'INT8': 1,
+        'INT4': 0.5
+    }
+    
+    def __init__(self, config: Optional[TraceConfig] = None):
+        """Initialize trace generator.
         
         Args:
-            context_length: Number of tokens in context
-            hidden_dim: Model hidden dimension
-            num_layers: Number of transformer layers
-            num_heads: Number of attention heads
-            cache_line_size: Cache line size in bytes
-            precision_bytes: Bytes per element (0.5=INT4, 1=INT8, 2=FP16, 4=FP32)
-            seed: Random seed for reproducibility
+            config: Trace configuration. Uses defaults if None.
         """
-        self.context_length = context_length
-        self.hidden_dim = hidden_dim
-        self.num_layers = num_layers
-        self.num_heads = num_heads
-        self.cache_line_size = cache_line_size
-        self.precision_bytes = precision_bytes
-        
-        if seed is not None:
-            np.random.seed(seed)
-        
-        # Calculate derived parameters
-        self.head_dim = hidden_dim // num_heads
-        self.kv_size_per_token = 2 * hidden_dim * precision_bytes  # K and V
-        self.elements_per_line = int(cache_line_size / precision_bytes)
-        
-        # Base address for KV cache (arbitrary but consistent)
-        self.base_addr = 0x10000000
-        
+        self.config = config or TraceConfig()
+        self.bytes_per_element = self.PRECISION_BYTES[self.config.precision]
+    
     def generate_attention_trace(
         self, 
-        generation_length: int = 1,
-        add_noise: bool = True,
-        noise_level: float = 0.02
+        layer_id: int = 0,
+        read_only: bool = True
     ) -> List[Tuple[str, int]]:
-        """Generate memory trace for attention mechanism.
+        """Generate trace for attention phase over KV-cache.
         
-        Models the memory access pattern during the attention phase:
-        1. Sequential reads through KV-cache (Q @ K^T)
-        2. Sequential writes for new tokens
-        3. Potential reuse for multi-head attention
+        This creates a sequential scan pattern typical of transformer
+        attention, where each new token attends to all previous tokens
+        in the context.
         
         Args:
-            generation_length: Number of new tokens to generate
-            add_noise: Add realistic access pattern noise
-            noise_level: Fraction of accesses that are non-sequential (0-1)
-            
+            layer_id: Which transformer layer (affects base address).
+            read_only: If True, only generate READ operations.
+        
         Returns:
-            List of (operation, address) tuples
+            List of (operation, address) tuples.
+            Operations are "READ" or "WRITE".
+        
+        Example:
+            >>> gen = TraceGenerator()
+            >>> trace = gen.generate_attention_trace(layer_id=0)
+            >>> trace[0]
+            ('READ', 16777216)
         """
         trace = []
         
-        for gen_step in range(generation_length):
-            current_seq_len = self.context_length + gen_step
+        # Calculate layer offset
+        layer_offset = layer_id * self.config.hidden_dim * 2  # K and V
+        
+        # Sequential scan through context
+        for token_idx in range(self.config.context_length):
+            # Calculate address for this token's KV pair
+            token_offset = token_idx * self.config.hidden_dim * 2
+            byte_offset = (layer_offset + token_offset) * self.bytes_per_element
             
-            # For each layer, read entire KV cache (attention computation)
-            for layer_idx in range(self.num_layers):
-                layer_offset = layer_idx * current_seq_len * self.kv_size_per_token
-                
-                # Sequential read through all tokens in KV cache
-                for token_idx in range(current_seq_len):
-                    token_offset = token_idx * self.kv_size_per_token
-                    byte_addr = self.base_addr + layer_offset + token_offset
-                    
-                    # Align to cache line
-                    cache_line_addr = (byte_addr // self.cache_line_size) * self.cache_line_size
-                    
-                    # Add noise: occasional non-sequential accesses (prefetch misses, etc.)
-                    if add_noise and np.random.random() < noise_level:
-                        # Jump to a different cache line (simulate branch misprediction, etc.)
-                        noise_offset = np.random.randint(1, 100) * self.cache_line_size
-                        cache_line_addr = (cache_line_addr + noise_offset) % (self.base_addr + 2**28)
-                    
-                    trace.append(("READ", cache_line_addr))
-                
-                # Write new token's KV state
-                new_token_offset = (current_seq_len - 1) * self.kv_size_per_token
-                write_addr = self.base_addr + layer_offset + new_token_offset
-                write_cache_line = (write_addr // self.cache_line_size) * self.cache_line_size
-                trace.append(("WRITE", write_cache_line))
+            # Align to cache line boundary
+            cache_line_id = int(byte_offset // self.config.cache_line_size)
+            addr = self.config.base_addr + (cache_line_id * self.config.cache_line_size)
+            
+            trace.append(("READ", addr))
         
         return trace
     
-    def generate_prefill_trace(self) -> List[Tuple[str, int]]:
-        """Generate memory trace for initial prefill phase.
+    def generate_prefill_trace(
+        self,
+        layer_id: int = 0
+    ) -> List[Tuple[str, int]]:
+        """Generate trace for prefill phase (initial context loading).
         
-        During prefill, the entire context is processed at once, with
-        sequential writes to build up the KV cache.
+        During prefill, the KV-cache is populated with all context tokens.
+        This creates a mix of WRITE operations followed by READ operations.
+        
+        Args:
+            layer_id: Which transformer layer.
         
         Returns:
-            List of (operation, address) tuples
+            List of (operation, address) tuples.
         """
         trace = []
+        layer_offset = layer_id * self.config.hidden_dim * 2
         
-        for layer_idx in range(self.num_layers):
-            layer_offset = layer_idx * self.context_length * self.kv_size_per_token
+        # Write phase: populate KV-cache
+        for token_idx in range(self.config.context_length):
+            token_offset = token_idx * self.config.hidden_dim * 2
+            byte_offset = (layer_offset + token_offset) * self.bytes_per_element
+            cache_line_id = int(byte_offset // self.config.cache_line_size)
+            addr = self.config.base_addr + (cache_line_id * self.config.cache_line_size)
             
-            # Sequential writes for prefill
-            for token_idx in range(self.context_length):
-                token_offset = token_idx * self.kv_size_per_token
-                byte_addr = self.base_addr + layer_offset + token_offset
-                cache_line_addr = (byte_addr // self.cache_line_size) * self.cache_line_size
-                
-                trace.append(("WRITE", cache_line_addr))
+            trace.append(("WRITE", addr))
+        
+        # Read phase: attention over written tokens
+        for token_idx in range(self.config.context_length):
+            token_offset = token_idx * self.config.hidden_dim * 2
+            byte_offset = (layer_offset + token_offset) * self.bytes_per_element
+            cache_line_id = int(byte_offset // self.config.cache_line_size)
+            addr = self.config.base_addr + (cache_line_id * self.config.cache_line_size)
+            
+            trace.append(("READ", addr))
         
         return trace
     
-    def compute_statistics(self, trace: List[Tuple[str, int]]) -> TraceStatistics:
-        """Compute statistical properties of a memory trace.
+    def generate_random_trace(
+        self,
+        num_ops: int = 10000,
+        read_prob: float = 0.7
+    ) -> List[Tuple[str, int]]:
+        """Generate random memory access trace.
+        
+        Useful for stress-testing and adversarial workloads.
         
         Args:
-            trace: List of (operation, address) tuples
-            
+            num_ops: Number of memory operations.
+            read_prob: Probability of READ vs WRITE (0.0 to 1.0).
+        
         Returns:
-            TraceStatistics object with computed metrics
+            List of (operation, address) tuples.
         """
-        if not trace:
-            raise ValueError("Cannot compute statistics on empty trace")
+        trace = []
+        max_addr = self.config.context_length * self.config.hidden_dim * 2
+        max_cache_lines = int(max_addr * self.bytes_per_element / self.config.cache_line_size)
         
-        addresses = [addr for _, addr in trace]
-        unique_addrs = set(addresses)
+        for _ in range(num_ops):
+            # Random operation type
+            op = "READ" if np.random.random() < read_prob else "WRITE"
+            
+            # Random cache line
+            cache_line_id = np.random.randint(0, max_cache_lines)
+            addr = self.config.base_addr + (cache_line_id * self.config.cache_line_size)
+            
+            trace.append((op, addr))
         
-        # Spatial locality: fraction of accesses that are sequential
-        sequential_count = sum(
-            1 for i in range(1, len(addresses))
-            if addresses[i] - addresses[i-1] == self.cache_line_size
-        )
-        spatial_locality = sequential_count / (len(addresses) - 1) if len(addresses) > 1 else 0.0
-        
-        # Temporal locality: reuse rate
-        total_accesses = len(addresses)
-        reuse_count = total_accesses - len(unique_addrs)
-        temporal_locality = reuse_count / total_accesses if total_accesses > 0 else 0.0
-        
-        # Stride distribution
-        strides = {}
-        for i in range(1, len(addresses)):
-            stride = addresses[i] - addresses[i-1]
-            strides[stride] = strides.get(stride, 0) + 1
-        
-        # Address entropy (Shannon entropy)
-        addr_counts = {}
-        for addr in addresses:
-            addr_counts[addr] = addr_counts.get(addr, 0) + 1
-        
-        entropy = 0.0
-        for count in addr_counts.values():
-            p = count / total_accesses
-            if p > 0:
-                entropy -= p * np.log2(p)
-        
-        # Working set size
-        working_set_bytes = len(unique_addrs) * self.cache_line_size
-        working_set_kb = working_set_bytes / 1024
-        
-        # Mean reuse distance
-        last_access = {}
-        reuse_distances = []
-        for i, addr in enumerate(addresses):
-            if addr in last_access:
-                reuse_distances.append(i - last_access[addr])
-            last_access[addr] = i
-        
-        mean_reuse_distance = np.mean(reuse_distances) if reuse_distances else float('inf')
-        
-        return TraceStatistics(
-            total_accesses=total_accesses,
-            unique_addresses=len(unique_addrs),
-            spatial_locality=spatial_locality,
-            temporal_locality=temporal_locality,
-            stride_distribution=strides,
-            address_entropy=entropy,
-            working_set_size_kb=working_set_kb,
-            mean_reuse_distance=mean_reuse_distance
-        )
+        return trace
     
-    def validate_trace(self, trace: List[Tuple[str, int]]) -> Dict[str, bool]:
-        """Validate that trace matches expected LLM access patterns.
+    def generate_strided_trace(
+        self,
+        stride: int = 1,
+        num_passes: int = 1
+    ) -> List[Tuple[str, int]]:
+        """Generate strided access pattern.
         
-        Checks:
-        1. Addresses are cache-line aligned
-        2. Working set size is reasonable for model size
-        3. Spatial locality is high (>90% for sequential attention)
-        4. No invalid operations
-        
-        Args:
-            trace: List of (operation, address) tuples
-            
-        Returns:
-            Dictionary of validation checks and their pass/fail status
-        """
-        stats = self.compute_statistics(trace)
-        
-        # Expected working set size (all layers * context * kv_size)
-        expected_ws_kb = (self.num_layers * self.context_length * 
-                         self.kv_size_per_token) / 1024
-        
-        validations = {
-            'addresses_aligned': all(
-                addr % self.cache_line_size == 0 for _, addr in trace
-            ),
-            'working_set_reasonable': (
-                0.8 * expected_ws_kb <= stats.working_set_size_kb <= 1.2 * expected_ws_kb
-            ),
-            'high_spatial_locality': stats.spatial_locality >= 0.85,
-            'valid_operations': all(
-                op in ['READ', 'WRITE'] for op, _ in trace
-            ),
-            'non_zero_entropy': stats.address_entropy > 0.0,
-            'reasonable_reuse': stats.mean_reuse_distance < len(trace)
-        }
-        
-        return validations
-    
-    def generate_report(self, trace: List[Tuple[str, int]]) -> str:
-        """Generate detailed report on trace characteristics.
+        Tests prefetcher with non-sequential patterns.
         
         Args:
-            trace: List of (operation, address) tuples
-            
+            stride: Stride in cache lines.
+            num_passes: Number of passes through memory.
+        
         Returns:
-            Formatted string report
+            List of (operation, address) tuples.
         """
-        stats = self.compute_statistics(trace)
-        validations = self.validate_trace(trace)
+        trace = []
+        max_addr = self.config.context_length * self.config.hidden_dim * 2
+        max_cache_lines = int(max_addr * self.bytes_per_element / self.config.cache_line_size)
         
-        report = []
-        report.append("=" * 70)
-        report.append("MEMORY TRACE ANALYSIS REPORT")
-        report.append("=" * 70)
-        report.append("")
-        report.append("Configuration:")
-        report.append(f"  Model: {self.num_layers}L-{self.hidden_dim}H (Llama-2 style)")
-        report.append(f"  Context Length: {self.context_length} tokens")
-        report.append(f"  Precision: INT{int(self.precision_bytes * 8)} ({self.precision_bytes} bytes/element)")
-        report.append(f"  Cache Line Size: {self.cache_line_size} bytes")
-        report.append("")
-        report.append("Trace Statistics:")
-        report.append(f"  Total Accesses: {stats.total_accesses:,}")
-        report.append(f"  Unique Addresses: {stats.unique_addresses:,}")
-        report.append(f"  Working Set Size: {stats.working_set_size_kb:.2f} KB")
-        report.append(f"  Spatial Locality: {stats.spatial_locality:.2%}")
-        report.append(f"  Temporal Locality: {stats.temporal_locality:.2%}")
-        report.append(f"  Address Entropy: {stats.address_entropy:.3f} bits")
-        report.append(f"  Mean Reuse Distance: {stats.mean_reuse_distance:.1f} accesses")
-        report.append("")
-        report.append("Top 5 Stride Patterns:")
-        top_strides = sorted(stats.stride_distribution.items(), 
-                           key=lambda x: x[1], reverse=True)[:5]
-        for stride, count in top_strides:
-            percentage = (count / stats.total_accesses) * 100
-            report.append(f"  Stride {stride:8d}: {count:6d} ({percentage:5.2f}%)")
-        report.append("")
-        report.append("Validation Checks:")
-        for check, passed in validations.items():
-            status = "✓ PASS" if passed else "✗ FAIL"
-            report.append(f"  {check:30s}: {status}")
-        report.append("")
-        report.append("=" * 70)
+        for _ in range(num_passes):
+            for line_id in range(0, max_cache_lines, stride):
+                addr = self.config.base_addr + (line_id * self.config.cache_line_size)
+                trace.append(("READ", addr))
         
-        return "\n".join(report)
+        return trace
 
 
 def generate_llm_trace(
     context_length: int = 2048,
     hidden_dim: int = 4096,
-    num_layers: int = 32,
-    generation_length: int = 1,
-    seed: Optional[int] = 42
+    precision: str = "INT4"
 ) -> List[Tuple[str, int]]:
-    """Convenience function to generate LLM memory trace.
+    """Convenience function to generate standard LLM inference trace.
+    
+    This is a simple wrapper around TraceGenerator for quick usage.
     
     Args:
-        context_length: Number of tokens in context
-        hidden_dim: Model hidden dimension  
-        num_layers: Number of transformer layers
-        generation_length: Number of new tokens to generate
-        seed: Random seed for reproducibility
-        
+        context_length: Number of tokens in context.
+        hidden_dim: Hidden dimension size.
+        precision: Data precision ('FP32', 'FP16', 'INT8', 'INT4').
+    
     Returns:
-        List of (operation, address) tuples
-        
+        List of (operation, address) tuples representing attention trace.
+    
     Example:
-        >>> trace = generate_llm_trace(context_length=2048, hidden_dim=4096)
-        >>> print(f"Generated {len(trace)} memory accesses")
+        >>> trace = generate_llm_trace(context_length=2048)
+        >>> len(trace)
+        2048
     """
-    generator = LLMTraceGenerator(
+    config = TraceConfig(
         context_length=context_length,
         hidden_dim=hidden_dim,
-        num_layers=num_layers,
-        seed=seed
+        precision=precision
     )
-    
-    return generator.generate_attention_trace(generation_length=generation_length)
+    generator = TraceGenerator(config)
+    return generator.generate_attention_trace()
 
 
 if __name__ == "__main__":
-    # Example usage with validation
-    print("Generating validated LLM inference trace...\n")
+    # Example usage
+    print("Generating LLM inference trace...")
     
-    generator = LLMTraceGenerator(
-        context_length=2048,
-        hidden_dim=4096,
-        num_layers=32,
-        seed=42
+    # Standard attention trace
+    trace = generate_llm_trace(context_length=2048, hidden_dim=4096)
+    print(f"Generated {len(trace)} operations")
+    print(f"First 5 operations: {trace[:5]}")
+    
+    # Advanced usage with custom configuration
+    config = TraceConfig(
+        context_length=4096,
+        hidden_dim=8192,
+        precision="INT8"
     )
+    generator = TraceGenerator(config)
     
-    trace = generator.generate_attention_trace(generation_length=1)
-    print(f"Generated {len(trace)} memory operations\n")
+    # Different trace types
+    attention_trace = generator.generate_attention_trace()
+    prefill_trace = generator.generate_prefill_trace()
+    random_trace = generator.generate_random_trace(num_ops=5000)
+    strided_trace = generator.generate_strided_trace(stride=4)
     
-    # Print detailed report
-    print(generator.generate_report(trace))
+    print(f"\nAttention trace: {len(attention_trace)} ops")
+    print(f"Prefill trace: {len(prefill_trace)} ops")
+    print(f"Random trace: {len(random_trace)} ops")
+    print(f"Strided trace: {len(strided_trace)} ops")
