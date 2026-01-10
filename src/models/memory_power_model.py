@@ -62,6 +62,7 @@ class MemoryPowerModel:
         self,
         cache_size_mb: float,
         bandwidth_gb_s: float,
+        technology: str = 'eDRAM',
         read_ratio: float = 0.90,
         write_ratio: float = 0.10
     ):
@@ -70,11 +71,13 @@ class MemoryPowerModel:
         Args:
             cache_size_mb: Total cache capacity in megabytes
             bandwidth_gb_s: Sustained memory bandwidth in GB/s
+            technology: Technology to model ('HD_SRAM', 'eDRAM', 'STT_MRAM')
             read_ratio: Fraction of operations that are reads
             write_ratio: Fraction of operations that are writes
         """
         self.cache_size_mb = cache_size_mb
         self.bandwidth_gb_s = bandwidth_gb_s
+        self.technology = technology
         self.read_ratio = read_ratio
         self.write_ratio = write_ratio
         
@@ -104,11 +107,20 @@ class MemoryPowerModel:
         
         return {
             'technology': tech.name,
-            'dynamic_power_w': round(dynamic_power_w, 3),
-            'static_power_w': round(static_power_w, 3),
-            'total_power_w': round(total_power_w, 3),
+            'dynamic_w': round(dynamic_power_w, 3),
+            'static_w': round(static_power_w, 3),
+            'total_w': round(total_power_w, 3),
             'latency_cycles': tech.latency_cycles
         }
+    
+    def estimate_power(self) -> Dict:
+        """Estimate power for the configured technology.
+        
+        Returns:
+            Dictionary with power breakdown for selected technology
+        """
+        tech_params = self.TECHNOLOGIES[self.technology]
+        return self.calculate_power(tech_params)
     
     def compare_technologies(self) -> pd.DataFrame:
         """Compare all supported technologies.
@@ -122,7 +134,7 @@ class MemoryPowerModel:
             results.append(power_data)
         
         df = pd.DataFrame(results)
-        df = df.sort_values('total_power_w')
+        df = df.sort_values('total_w')
         return df
     
     def print_comparison(self):
@@ -144,9 +156,9 @@ class MemoryPowerModel:
         best = df.iloc[0]
         worst = df.iloc[-1]
         print(f"Winner: {best['technology']}")
-        print(f"  Total Power: {best['total_power_w']:.2f} W")
+        print(f"  Total Power: {best['total_w']:.2f} W")
         print(f"  Savings vs {worst['technology']}: "
-              f"{worst['total_power_w'] / best['total_power_w']:.1f}x\n")
+              f"{worst['total_w'] / best['total_w']:.1f}x\n")
 
 
 if __name__ == "__main__":
@@ -154,6 +166,7 @@ if __name__ == "__main__":
     model = MemoryPowerModel(
         cache_size_mb=224,
         bandwidth_gb_s=20,
+        technology='eDRAM',
         read_ratio=0.90,
         write_ratio=0.10
     )
