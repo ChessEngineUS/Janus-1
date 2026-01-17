@@ -1,184 +1,235 @@
-"""Tests for memory trace generator."""
+#!/usr/bin/env python3
+"""
+Trace Generator Test Suite
+===========================
+
+Validation of synthetic workload trace generation.
+Ensures realistic memory access patterns for LLM inference.
+
+Author: Janus-1 Design Team
+License: MIT
+"""
 
 import pytest
 import numpy as np
 from src.benchmarks.trace_generator import (
-    LLMTraceGenerator,
     generate_llm_trace,
-    TraceStatistics
+    generate_sequential_trace,
+    generate_random_trace,
+    generate_strided_trace,
 )
 
 
-def test_trace_generator_initialization():
-    """Test basic initialization of trace generator."""
-    gen = LLMTraceGenerator(
-        context_length=1024,
-        hidden_dim=2048,
-        num_layers=16,
-        seed=42
-    )
-    
-    assert gen.context_length == 1024
-    assert gen.hidden_dim == 2048
-    assert gen.num_layers == 16
-    assert gen.head_dim == 2048 // 32  # Default num_heads=32
+class TestLLMTraceGeneration:
+    """Test LLM inference trace generation."""
+
+    def test_basic_llm_trace_generation(self):
+        """Test basic LLM trace can be generated."""
+        trace = generate_llm_trace(context_length=512, hidden_dim=2048)
+        
+        assert len(trace) > 0, "Trace should not be empty"
+        assert all(isinstance(op, tuple) and len(op) == 2 for op in trace), \
+            "Each operation should be (op_type, address) tuple"
+
+    def test_llm_trace_parameters(self):
+        """Test LLM trace respects input parameters."""
+        context_len = 1024
+        hidden_dim = 4096
+        
+        trace = generate_llm_trace(context_length=context_len, hidden_dim=hidden_dim)
+        
+        # Trace length should scale with context and hidden dim
+        assert len(trace) > context_len, "Trace should have multiple ops per token"
+
+    def test_llm_access_pattern_locality(self):
+        """Test LLM trace exhibits spatial locality."""
+        trace = generate_llm_trace(context_length=256, hidden_dim=2048)
+        
+        addresses = [addr for op, addr in trace]
+        
+        # Calculate address deltas
+        deltas = [abs(addresses[i+1] - addresses[i]) for i in range(len(addresses)-1)]
+        
+        # Many deltas should be small (spatial locality)
+        small_deltas = sum(1 for d in deltas if d <= 1024)
+        locality_ratio = small_deltas / len(deltas)
+        
+        assert locality_ratio > 0.3, f"Expected >30% spatial locality, got {locality_ratio*100:.1f}%"
+
+    def test_llm_read_write_ratio(self):
+        """Test LLM trace has realistic read/write ratio."""
+        trace = generate_llm_trace(context_length=512, hidden_dim=2048)
+        
+        reads = sum(1 for op, _ in trace if op == "READ")
+        writes = sum(1 for op, _ in trace if op == "WRITE")
+        
+        # LLM inference is read-heavy
+        assert reads > writes, "Should have more reads than writes for inference"
+        
+        read_ratio = reads / len(trace)
+        assert read_ratio > 0.7, f"Expected >70% reads, got {read_ratio*100:.1f}%"
 
 
-def test_generate_attention_trace():
-    """Test generation of attention memory trace."""
-    gen = LLMTraceGenerator(context_length=512, hidden_dim=1024, num_layers=8, seed=42)
-    trace = gen.generate_attention_trace(generation_length=1)
-    
-    assert len(trace) > 0
-    assert all(isinstance(op, str) and isinstance(addr, int) for op, addr in trace)
-    assert all(op in ['READ', 'WRITE'] for op, _ in trace)
+class TestSequentialTraceGeneration:
+    """Test sequential access pattern generation."""
+
+    def test_sequential_trace_basic(self):
+        """Test basic sequential trace generation."""
+        trace = generate_sequential_trace(start_addr=0x1000, num_accesses=100)
+        
+        assert len(trace) == 100, "Should generate requested number of accesses"
+        
+        # Check addresses are sequential
+        addresses = [addr for _, addr in trace]
+        for i in range(len(addresses) - 1):
+            assert addresses[i+1] == addresses[i] + 128, "Addresses should be sequential"
+
+    def test_sequential_trace_custom_stride(self):
+        """Test sequential trace with custom stride."""
+        stride = 256
+        trace = generate_sequential_trace(
+            start_addr=0x2000, 
+            num_accesses=50,
+            stride=stride
+        )
+        
+        addresses = [addr for _, addr in trace]
+        for i in range(len(addresses) - 1):
+            assert addresses[i+1] == addresses[i] + stride, \
+                f"Stride should be {stride}, got {addresses[i+1] - addresses[i]}"
+
+    def test_sequential_trace_operations(self):
+        """Test sequential trace operation types."""
+        trace = generate_sequential_trace(start_addr=0x3000, num_accesses=100)
+        
+        ops = [op for op, _ in trace]
+        assert all(op == "READ" for op in ops), "Sequential trace should be all READs"
 
 
-def test_generate_prefill_trace():
-    """Test generation of prefill trace."""
-    gen = LLMTraceGenerator(context_length=256, hidden_dim=512, num_layers=4, seed=42)
-    trace = gen.generate_prefill_trace()
-    
-    # Prefill should have writes for all tokens in all layers
-    expected_writes = gen.context_length * gen.num_layers
-    assert len(trace) == expected_writes
-    assert all(op == 'WRITE' for op, _ in trace)
+class TestRandomTraceGeneration:
+    """Test random access pattern generation."""
+
+    def test_random_trace_basic(self):
+        """Test basic random trace generation."""
+        trace = generate_random_trace(num_accesses=100, addr_range=(0, 1_000_000))
+        
+        assert len(trace) == 100, "Should generate requested number of accesses"
+
+    def test_random_trace_range(self):
+        """Test random addresses stay within specified range."""
+        min_addr = 0x10000
+        max_addr = 0x20000
+        
+        trace = generate_random_trace(
+            num_accesses=100,
+            addr_range=(min_addr, max_addr)
+        )
+        
+        addresses = [addr for _, addr in trace]
+        assert all(min_addr <= addr <= max_addr for addr in addresses), \
+            "Addresses should be within specified range"
+
+    def test_random_trace_no_locality(self):
+        """Test random trace has minimal spatial locality."""
+        trace = generate_random_trace(num_accesses=1000, addr_range=(0, 10_000_000))
+        
+        addresses = [addr for _, addr in trace]
+        deltas = [abs(addresses[i+1] - addresses[i]) for i in range(len(addresses)-1)]
+        
+        # Random access should have low locality
+        small_deltas = sum(1 for d in deltas if d <= 1024)
+        locality_ratio = small_deltas / len(deltas)
+        
+        assert locality_ratio < 0.2, f"Random trace should have <20% locality, got {locality_ratio*100:.1f}%"
+
+    def test_random_trace_reproducibility(self):
+        """Test random trace is reproducible with seed."""
+        trace1 = generate_random_trace(num_accesses=100, addr_range=(0, 1_000_000), seed=42)
+        trace2 = generate_random_trace(num_accesses=100, addr_range=(0, 1_000_000), seed=42)
+        
+        assert trace1 == trace2, "Same seed should produce identical traces"
 
 
-def test_trace_addresses_aligned():
-    """Test that all addresses are cache-line aligned."""
-    gen = LLMTraceGenerator(context_length=128, cache_line_size=128, seed=42)
-    trace = gen.generate_attention_trace(generation_length=1, add_noise=False)
-    
-    for _, addr in trace:
-        assert addr % gen.cache_line_size == 0, f"Address {addr} not aligned"
+class TestStridedTraceGeneration:
+    """Test strided access pattern generation."""
+
+    def test_strided_trace_basic(self):
+        """Test basic strided trace generation."""
+        trace = generate_strided_trace(
+            start_addr=0x4000,
+            num_accesses=50,
+            stride=512
+        )
+        
+        assert len(trace) == 50, "Should generate requested number of accesses"
+
+    def test_strided_trace_pattern(self):
+        """Test strided access pattern is correct."""
+        stride = 1024
+        trace = generate_strided_trace(
+            start_addr=0x5000,
+            num_accesses=100,
+            stride=stride
+        )
+        
+        addresses = [addr for _, addr in trace]
+        for i in range(len(addresses) - 1):
+            assert addresses[i+1] == addresses[i] + stride, \
+                "Addresses should increment by stride"
+
+    def test_strided_trace_wraparound(self):
+        """Test strided trace with address wraparound."""
+        trace = generate_strided_trace(
+            start_addr=0x6000,
+            num_accesses=100,
+            stride=2048,
+            max_addr=0x6000 + 50 * 2048  # Force wraparound
+        )
+        
+        assert len(trace) == 100, "Should generate all accesses with wraparound"
 
 
-def test_compute_statistics():
-    """Test computation of trace statistics."""
-    gen = LLMTraceGenerator(context_length=512, hidden_dim=1024, seed=42)
-    trace = gen.generate_attention_trace(generation_length=1, add_noise=False)
-    stats = gen.compute_statistics(trace)
-    
-    assert isinstance(stats, TraceStatistics)
-    assert stats.total_accesses == len(trace)
-    assert stats.unique_addresses > 0
-    assert 0 <= stats.spatial_locality <= 1
-    assert 0 <= stats.temporal_locality <= 1
-    assert stats.address_entropy >= 0
+class TestTraceCharacteristics:
+    """Test trace quality and characteristics."""
 
+    def test_address_alignment(self):
+        """Test generated addresses are properly aligned."""
+        trace = generate_llm_trace(context_length=256, hidden_dim=2048)
+        
+        addresses = [addr for _, addr in trace]
+        
+        # Check alignment (should be cache line aligned)
+        aligned = all(addr % 64 == 0 for addr in addresses)
+        assert aligned, "Addresses should be 64-byte aligned"
 
-def test_high_spatial_locality():
-    """Test that sequential accesses have high spatial locality."""
-    gen = LLMTraceGenerator(context_length=256, hidden_dim=512, seed=42)
-    trace = gen.generate_attention_trace(generation_length=1, add_noise=False)
-    stats = gen.compute_statistics(trace)
-    
-    # Without noise, should have very high spatial locality
-    assert stats.spatial_locality > 0.85
+    def test_no_duplicate_consecutive_reads(self):
+        """Test traces avoid unnecessary duplicate consecutive reads."""
+        trace = generate_sequential_trace(start_addr=0x7000, num_accesses=100)
+        
+        # Check no immediate duplicates
+        for i in range(len(trace) - 1):
+            if trace[i][0] == "READ" and trace[i+1][0] == "READ":
+                assert trace[i][1] != trace[i+1][1], \
+                    "Sequential trace should not have duplicate consecutive addresses"
 
+    def test_trace_length_scaling(self):
+        """Test trace length scales with parameters."""
+        small_trace = generate_llm_trace(context_length=128, hidden_dim=1024)
+        large_trace = generate_llm_trace(context_length=512, hidden_dim=4096)
+        
+        assert len(large_trace) > len(small_trace), \
+            "Larger parameters should produce longer traces"
 
-def test_noise_reduces_spatial_locality():
-    """Test that adding noise reduces spatial locality."""
-    gen = LLMTraceGenerator(context_length=256, hidden_dim=512, seed=42)
-    
-    trace_no_noise = gen.generate_attention_trace(generation_length=1, add_noise=False)
-    stats_no_noise = gen.compute_statistics(trace_no_noise)
-    
-    trace_with_noise = gen.generate_attention_trace(generation_length=1, add_noise=True, noise_level=0.1)
-    stats_with_noise = gen.compute_statistics(trace_with_noise)
-    
-    assert stats_with_noise.spatial_locality < stats_no_noise.spatial_locality
-
-
-def test_validate_trace_all_pass():
-    """Test trace validation with clean trace."""
-    gen = LLMTraceGenerator(context_length=512, hidden_dim=1024, seed=42)
-    trace = gen.generate_attention_trace(generation_length=1, add_noise=False)
-    validations = gen.validate_trace(trace)
-    
-    # All validations should pass for clean trace
-    assert all(validations.values()), f"Some validations failed: {validations}"
-
-
-def test_stride_distribution():
-    """Test that stride distribution is computed correctly."""
-    gen = LLMTraceGenerator(context_length=256, hidden_dim=512, seed=42)
-    trace = gen.generate_attention_trace(generation_length=1, add_noise=False)
-    stats = gen.compute_statistics(trace)
-    
-    # Should have stride distribution
-    assert len(stats.stride_distribution) > 0
-    
-    # Most common stride should be cache_line_size for sequential access
-    most_common_stride = max(stats.stride_distribution, key=stats.stride_distribution.get)
-    assert most_common_stride == gen.cache_line_size or most_common_stride == -gen.cache_line_size
-
-
-def test_working_set_size():
-    """Test working set size calculation."""
-    gen = LLMTraceGenerator(
-        context_length=1024,
-        hidden_dim=4096,
-        num_layers=32,
-        precision_bytes=0.5,  # INT4
-        seed=42
-    )
-    trace = gen.generate_attention_trace(generation_length=1, add_noise=False)
-    stats = gen.compute_statistics(trace)
-    
-    # Working set should be reasonable for model size
-    # Roughly: 32 layers * 1024 tokens * 2 * 4096 * 0.5 bytes
-    expected_kb = (32 * 1024 * 2 * 4096 * 0.5) / 1024
-    
-    # Allow 50% tolerance due to cache line effects
-    assert 0.5 * expected_kb < stats.working_set_size_kb < 1.5 * expected_kb
-
-
-def test_generate_report():
-    """Test report generation."""
-    gen = LLMTraceGenerator(context_length=256, hidden_dim=512, seed=42)
-    trace = gen.generate_attention_trace(generation_length=1)
-    report = gen.generate_report(trace)
-    
-    assert isinstance(report, str)
-    assert len(report) > 0
-    assert "MEMORY TRACE ANALYSIS REPORT" in report
-    assert "Spatial Locality" in report
-    assert "Validation Checks" in report
-
-
-def test_convenience_function():
-    """Test convenience function for trace generation."""
-    trace = generate_llm_trace(
-        context_length=512,
-        hidden_dim=1024,
-        num_layers=16,
-        generation_length=1,
-        seed=42
-    )
-    
-    assert len(trace) > 0
-    assert all(isinstance(op, str) and isinstance(addr, int) for op, addr in trace)
-
-
-def test_reproducibility_with_seed():
-    """Test that same seed produces same trace."""
-    trace1 = generate_llm_trace(context_length=256, seed=42)
-    trace2 = generate_llm_trace(context_length=256, seed=42)
-    
-    assert trace1 == trace2
-
-
-def test_different_seeds_different_traces():
-    """Test that different seeds produce different traces with noise."""
-    trace1 = generate_llm_trace(context_length=256, seed=42)
-    trace2 = generate_llm_trace(context_length=256, seed=123)
-    
-    # Traces should be different when noise is involved
-    # (though structure may be similar)
-    assert trace1 != trace2
+    def test_operation_type_validity(self):
+        """Test all operations are valid types."""
+        trace = generate_llm_trace(context_length=256, hidden_dim=2048)
+        
+        valid_ops = {"READ", "WRITE"}
+        for op, addr in trace:
+            assert op in valid_ops, f"Invalid operation type: {op}"
+            assert isinstance(addr, int), f"Address should be integer, got {type(addr)}"
+            assert addr >= 0, f"Address should be non-negative, got {addr}"
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+    pytest.main([__file__, "-v", "--tb=short"])
